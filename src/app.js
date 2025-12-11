@@ -12,10 +12,12 @@ connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const roleRoutes = require("./routes/role.routes");
 
 // Middlewares
 app.use(cors());
 app.use(express.json());
+app.use("/api/roles", roleRoutes);
 
 // Ruta de prueba
 app.get("/api/health", (req, res) => {
