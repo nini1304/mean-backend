@@ -1,0 +1,32 @@
+const User = require("../models/user.model");
+
+class UserService {
+  async crearUsuario(data) {
+    const { nombre_completo, correo, numero_celular, id_rol } = data;
+
+    // Aquí podrías validar más cosas si quieres
+    const usuario = await User.create({
+      nombre_completo,
+      correo,
+      numero_celular,
+      id_rol,
+    });
+
+    // populate opcional si quieres devolver también info del rol
+    return usuario.populate("id_rol", "nombre");
+  }
+
+  async listarUsuarios() {
+    return await User.find()
+      .populate("id_rol", "nombre") // Trae datos del rol, solo el campo nombre
+      .lean();
+  }
+
+  async obtenerPorId(id) {
+    return await User.findById(id)
+      .populate("id_rol", "nombre")
+      .lean();
+  }
+}
+
+module.exports = new UserService();
