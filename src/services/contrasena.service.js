@@ -18,12 +18,14 @@ class ContrasenaService {
     return registro;
   }
 
-  // Validar contraseña (ej: login)
-  async validarContrasena(id_usuario, contrasena_plana) {
-    const registro = await Contrasena.findOne({ id_usuario });
+   async validarContrasena(id_usuario, contrasena_plana) {
+    const registro = await Contrasena.findOne({
+      id_usuario,
+      activa: true,
+    });
 
     if (!registro) {
-      return false; // no hay contraseña guardada
+      return false;
     }
 
     const esValida = await bcrypt.compare(
@@ -33,6 +35,7 @@ class ContrasenaService {
 
     return esValida;
   }
+
 }
 
 module.exports = new ContrasenaService();

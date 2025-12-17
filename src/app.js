@@ -6,6 +6,7 @@ const connectDB = require("./config/db");
 const userRoutes = require("./routes/user.routes");
 const roleRoutes = require("./routes/role.routes");
 const contrasenaRoutes = require("./routes/contrasena.routes");
+const authRoutes = require("./routes/auth.routes");
 
 // Cargar variables de entorno
 dotenv.config();
@@ -23,6 +24,7 @@ app.use(express.json());
 app.use("/api/roles", roleRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/contrasenas", contrasenaRoutes);
+app.use("/api/auth", authRoutes);
 
 // Ruta de prueba
 app.get("/api/health", (req, res) => {
