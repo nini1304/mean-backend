@@ -28,3 +28,28 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: "Error al realizar login" });
   }
 };
+
+exports.solicitarResetContrasena = async (req, res) => {
+  try {
+    const { correo } = req.body;
+
+    if (!correo) {
+      return res
+        .status(400)
+        .json({ message: "El campo 'correo' es obligatorio" });
+    }
+
+    await authService.solicitarResetContrasena(correo);
+
+    // Siempre respondemos lo mismo, exista o no el usuario
+    res.json({
+      message:
+        "Si el correo existe en el sistema, se ha enviado una contraseña temporal.",
+    });
+  } catch (error) {
+    console.error("Error al solicitar reset de contraseña:", error);
+    res
+      .status(500)
+      .json({ message: "Error al procesar la solicitud de restablecimiento" });
+  }
+};
