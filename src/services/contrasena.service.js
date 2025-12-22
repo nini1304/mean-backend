@@ -2,30 +2,36 @@ const bcrypt = require("bcryptjs");
 const Contrasena = require("../models/contrasena.model");
 
 class ContrasenaService {
-  // Crear o actualizar la contraseña de un usuario
-  async guardarContrasena(id_usuario, contrasena_plana) {
-    // Generar hash
+  async guardarContrasena(id_usuario, contrasena_plana, motivo = "CREACION") {
     const saltRounds = 10;
     const hash = await bcrypt.hash(contrasena_plana, saltRounds);
 
-    // upsert: si ya existe registro para ese usuario, lo actualiza
-    const registro = await Contrasena.findOneAndUpdate(
-      { id_usuario },
-      { contrasena: hash },
-      { new: true, upsert: true }
+    // 1) Desactivar contraseñas activas anteriores
+    await Contrasena.updateMany(
+      { id_usuario, activa: true },
+      { $set: { activa: false } }
     );
+
+    // 2) Crear nueva contraseña activa
+    const registro = await Contrasena.create({
+      id_usuario,
+      contrasena: hash,
+      activa: true,
+      motivo,
+    });
 
     return registro;
   }
 
-   async validarContrasena(id_usuario, contrasena_plana) {
+  // Validar contraseña actual y devolver también el registro (para saber el motivo)
+  async validarContrasena(id_usuario, contrasena_plana) {
     const registro = await Contrasena.findOne({
       id_usuario,
       activa: true,
     });
 
     if (!registro) {
-      return false;
+      return { esValida: false, registro: null };
     }
 
     const esValida = await bcrypt.compare(
@@ -33,7 +39,7 @@ class ContrasenaService {
       registro.contrasena
     );
 
-    return esValida;
+    return { esValida, registro };
   }
 
 }
