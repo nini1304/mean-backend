@@ -32,6 +32,7 @@ class AuthService {
 
     const payload = {
       sub: user._id.toString(),
+      nombre_completo: user.nombre_completo,
       correo: user.correo,
       rol: {
         id: user.id_rol?._id?.toString(),
@@ -46,13 +47,6 @@ class AuthService {
 
     return {
       token,
-      usuario: {
-        id: user._id,
-        nombre_completo: user.nombre_completo,
-        correo: user.correo,
-        numero_celular: user.numero_celular,
-        rol: user.id_rol?.nombre,
-      },
       requiereCambioContrasena,
     };
   }

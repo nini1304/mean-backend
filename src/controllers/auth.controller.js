@@ -17,7 +17,9 @@ exports.login = async (req, res) => {
       message: "Login exitoso",
       token: resultado.token,
       usuario: resultado.usuario,
+      requiereCambioContrasena: resultado.requiereCambioContrasena, // 👈 ESTO FALTABA
     });
+
   } catch (error) {
     console.error("Error en login:", error);
 
@@ -28,6 +30,7 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: "Error al realizar login" });
   }
 };
+
 
 exports.solicitarResetContrasena = async (req, res) => {
   try {
