@@ -1,4 +1,6 @@
 const User = require("../models/user.model");
+const Role = require("../models/role.model");
+
 
 class UserService {
   async crearUsuario(data) {
@@ -27,6 +29,21 @@ class UserService {
       .populate("id_rol", "nombre")
       .lean();
   }
+
+  async listarUsuariosPorRolNombre(nombreRol) {
+    const rol = await Role.findOne({ nombre: nombreRol }).lean();
+
+    if (!rol) {
+      // devolvemos lista vacía si no existe el rol
+      return [];
+    }
+
+    return await User.find({ id_rol: rol._id })
+      .populate("id_rol", "nombre")
+      .lean();
+  }
+
+  
 }
 
 module.exports = new UserService();

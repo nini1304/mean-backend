@@ -34,3 +34,13 @@ exports.listarUsuarios = async (req, res) => {
     res.status(500).json({ message: "Error al listar usuarios" });
   }
 };
+
+exports.listarDuenos = async (req, res) => {
+  try {
+    const clientes = await userService.listarUsuariosPorRolNombre("CLIENTE");
+    res.json(clientes);
+  } catch (error) {
+    console.error("Error al listar clientes:", error);
+    res.status(500).json({ message: "Error al listar clientes" });
+  }
+};
