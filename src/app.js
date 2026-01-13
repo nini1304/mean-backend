@@ -7,6 +7,8 @@ const userRoutes = require("./routes/user.routes");
 const roleRoutes = require("./routes/role.routes");
 const contrasenaRoutes = require("./routes/contrasena.routes");
 const authRoutes = require("./routes/auth.routes");
+const tipoMascotaRoutes = require("./routes/tipo_mascota.routes");
+const mascotaRoutes = require("./routes/mascota.routes");
 
 // Cargar variables de entorno
 dotenv.config();
@@ -25,6 +27,8 @@ app.use("/api/roles", roleRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/contrasenas", contrasenaRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/tipo-mascota", tipoMascotaRoutes);
+app.use("/api/mascotas", mascotaRoutes);
 
 // Ruta de prueba
 app.get("/api/health", (req, res) => {
