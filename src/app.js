@@ -9,6 +9,8 @@ const contrasenaRoutes = require("./routes/contrasena.routes");
 const authRoutes = require("./routes/auth.routes");
 const tipoMascotaRoutes = require("./routes/tipo_mascota.routes");
 const mascotaRoutes = require("./routes/mascota.routes");
+const usuarioMascotaRoutes = require("./routes/usuario_mascota.routes");
+const pacienteRoutes = require("./routes/paciente.routes");
 
 // Cargar variables de entorno
 dotenv.config();
@@ -29,6 +31,8 @@ app.use("/api/contrasenas", contrasenaRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/tipo-mascota", tipoMascotaRoutes);
 app.use("/api/mascotas", mascotaRoutes);
+app.use("/api/usuario-mascota", usuarioMascotaRoutes);
+app.use("/api/pacientes", pacienteRoutes);
 
 // Ruta de prueba
 app.get("/api/health", (req, res) => {
