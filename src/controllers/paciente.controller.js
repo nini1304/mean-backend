@@ -1,8 +1,8 @@
 const pacienteService = require("../services/paciente.service");
 
-exports.registrarDuenoConMascotas = async (req, res) => {
+exports.registrarClienteConMascotas = async (req, res) => {
   try {
-    const { dueno, mascotas } = req.body;
+    const { dueno, mascotas, contrasena } = req.body;
 
     if (!dueno || !mascotas || !Array.isArray(mascotas) || mascotas.length === 0) {
       return res.status(400).json({
@@ -10,7 +10,12 @@ exports.registrarDuenoConMascotas = async (req, res) => {
       });
     }
 
-    // Validación mínima del dueño
+    if (!contrasena) {
+      return res.status(400).json({
+        message: "El campo 'contrasena' es obligatorio.",
+      });
+    }
+
     const { nombre_completo, correo, numero_celular } = dueno;
     if (!nombre_completo || !correo || !numero_celular) {
       return res.status(400).json({
@@ -18,24 +23,27 @@ exports.registrarDuenoConMascotas = async (req, res) => {
       });
     }
 
-    const creado = await pacienteService.registrarDuenoConMascotas({ dueno, mascotas });
+    const creado = await pacienteService.registrarClienteConMascotas({
+      dueno,
+      mascotas,
+      contrasena,
+    });
 
     res.status(201).json({
       message: "Registro creado correctamente",
       data: creado,
     });
   } catch (error) {
-    console.error("Error registrando dueño con mascotas:", error);
+    console.error("Error registrando cliente con mascotas:", error);
 
-    // Duplicado de correo (unique)
     if (error.code === 11000) {
       return res.status(409).json({ message: "Ya existe un usuario con ese correo" });
     }
 
-    if (error.code === "ROL_DUENO_NO_EXISTE") {
+    if (error.code === "ROL_CLIENTE_NO_EXISTE") {
       return res.status(400).json({ message: error.message });
     }
 
-    res.status(500).json({ message: "Error al registrar dueño y mascotas" });
+    res.status(500).json({ message: "Error al registrar cliente y mascotas" });
   }
 };

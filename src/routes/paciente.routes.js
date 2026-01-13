@@ -8,9 +8,9 @@ const { requerirRol } = require("../middlewares/role.middleware");
 // Normalmente solo ADMIN/OPERADOR registra pacientes en clínica
 router.post(
   "/",
-  autenticarJWT,
-  requerirRol(["ADMIN"]),
-  controller.registrarDuenoConMascotas
+//   autenticarJWT,
+//   requerirRol(["ADMIN"]),
+  controller.registrarClienteConMascotas
 );
 
 module.exports = router;
