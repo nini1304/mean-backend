@@ -47,3 +47,25 @@ exports.registrarClienteConMascotas = async (req, res) => {
     res.status(500).json({ message: "Error al registrar cliente y mascotas" });
   }
 };
+
+exports.eliminarPaciente = async (req, res) => {
+  try {
+    const { idMascota } = req.params;
+
+    const result = await pacienteService.eliminarPacientePorMascota(idMascota);
+
+    res.json(result);
+  } catch (error) {
+    console.error("Error eliminando paciente:", error);
+
+    if (error.code === "MASCOTA_NO_ENCONTRADA") {
+      return res.status(404).json({ message: error.message });
+    }
+
+    if (error.code === "RELACION_NO_EXISTE") {
+      return res.status(404).json({ message: error.message });
+    }
+
+    res.status(500).json({ message: "Error al eliminar paciente" });
+  }
+};

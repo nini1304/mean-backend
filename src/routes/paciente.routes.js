@@ -13,4 +13,12 @@ router.post(
   controller.registrarClienteConMascotas
 );
 
+router.delete(
+  "/:idMascota",
+//   autenticarJWT,
+//   requerirRol(["ADMIN"]),
+  controller.eliminarPaciente
+);
+
+
 module.exports = router;

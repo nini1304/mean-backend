@@ -24,6 +24,11 @@ const userSchema = new mongoose.Schema(
       ref: "Role",      // Nombre del modelo Role
       required: true,
     },
+    eliminado: {
+      type: Boolean,
+      default: false, // borrado lógico del usuario
+      index: true,
+    },
   },
   {
     timestamps: true,
