@@ -15,9 +15,9 @@ const mascotaSchema = new mongoose.Schema(
     },
 
     edad: {
-      type: Number,
-      min: 0,
+      type: String,
       required: true,
+      trim: true,
     },
 
     peso: {

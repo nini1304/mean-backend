@@ -13,6 +13,13 @@ router.post(
   controller.registrarClienteConMascotas
 );
 
+router.post(
+  "/:idUsuario/mascotas",
+//   autenticarJWT,
+//   requerirRol(["ADMIN"]),
+  controller.registrarMascotasParaClienteExistente
+);
+
 router.delete(
   "/:idMascota",
 //   autenticarJWT,

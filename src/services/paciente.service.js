@@ -96,6 +96,78 @@ class PacienteService {
     }
   }
 
+  async registrarMascotasParaClienteExistente(payload) {
+  const { id_usuario, mascotas } = payload;
+
+  // 1) Validar usuario existe y está activo (no eliminado)
+  const usuario = await User.findOne({ _id: id_usuario, eliminado: false })
+    .populate("id_rol", "nombre")
+    .lean();
+
+  if (!usuario) {
+    const error = new Error("Usuario no encontrado o eliminado");
+    error.code = "USUARIO_NO_ENCONTRADO";
+    throw error;
+  }
+
+  // 2) Validar que sea CLIENTE (opcional pero recomendado)
+  if (usuario.id_rol?.nombre !== "CLIENTE") {
+    const error = new Error("El usuario no tiene rol CLIENTE");
+    error.code = "USUARIO_NO_ES_CLIENTE";
+    throw error;
+  }
+
+  if (!Array.isArray(mascotas) || mascotas.length === 0) {
+    const error = new Error("Debe enviarse un arreglo 'mascotas' con al menos 1 elemento");
+    error.code = "MASCOTAS_INVALIDAS";
+    throw error;
+  }
+
+  // 3) Crear mascotas (todas arrancan como no eliminadas)
+  const mascotasDocs = await Mascota.insertMany(
+    mascotas.map((m) => ({
+      nombre: m.nombre,
+      tipo_mascota: m.tipo_mascota,
+      edad: m.edad,
+      peso: m.peso,
+      sexo: m.sexo,
+      raza: m.raza,
+      eliminado: false,
+    }))
+  );
+
+  // 4) Crear relaciones usuario_mascota (activas)
+  // Si por algún motivo intentas asociar una misma mascota a un usuario y ya existe, tu índice unique evitará duplicado.
+  await UsuarioMascota.insertMany(
+    mascotasDocs.map((mascota) => ({
+      id_usuario,
+      id_mascota: mascota._id,
+      activo: true,
+    }))
+  );
+
+  // 5) Respuesta (puedes devolver en el mismo formato que el listado)
+  return {
+    cliente: {
+      id: usuario._id,
+      nombre_completo: usuario.nombre_completo,
+      correo: usuario.correo,
+      numero_celular: usuario.numero_celular,
+      rol: usuario.id_rol?.nombre,
+    },
+    mascotas: mascotasDocs.map((m) => ({
+      id: m._id,
+      nombre: m.nombre,
+      edad: m.edad,
+      peso: m.peso,
+      sexo: m.sexo,
+      raza: m.raza,
+      tipo_mascota: m.tipo_mascota,
+    })),
+  };
+}
+
+
    async eliminarPacientePorMascota(id_mascota) {
     // 1) Validar que exista mascota y no esté eliminada
     const mascota = await Mascota.findById(id_mascota).lean();

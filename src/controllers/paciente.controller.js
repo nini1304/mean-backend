@@ -48,6 +48,41 @@ exports.registrarClienteConMascotas = async (req, res) => {
   }
 };
 
+exports.registrarMascotasParaClienteExistente = async (req, res) => {
+  try {
+    const { idUsuario } = req.params;
+    const { mascotas } = req.body;
+
+    const creado = await pacienteService.registrarMascotasParaClienteExistente({
+      id_usuario: idUsuario,
+      mascotas,
+    });
+
+    res.status(201).json({
+      message: "Mascotas registradas correctamente para el cliente",
+      data: creado,
+    });
+  } catch (error) {
+    console.error("Error registrando mascotas para cliente existente:", error);
+
+    if (error.code === "USUARIO_NO_ENCONTRADO") {
+      return res.status(404).json({ message: error.message });
+    }
+
+    if (error.code === "USUARIO_NO_ES_CLIENTE" || error.code === "MASCOTAS_INVALIDAS") {
+      return res.status(400).json({ message: error.message });
+    }
+
+    // por si cae un duplicado (poco probable aquí, pero por consistencia)
+    if (error.code === 11000) {
+      return res.status(409).json({ message: "Conflicto al crear datos (duplicado)" });
+    }
+
+    res.status(500).json({ message: "Error al registrar mascotas para el cliente" });
+  }
+};
+
+
 exports.eliminarPaciente = async (req, res) => {
   try {
     const { idMascota } = req.params;
