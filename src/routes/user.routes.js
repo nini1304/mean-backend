@@ -21,4 +21,12 @@ router.get(
     //  requerirRol(["ADMIN"]),
       userController.listarDuenos);
 
+router.get(
+  "/clientes-activos",
+//   autenticarJWT,
+//   requerirRol(["ADMIN"]),
+  userController.listarClientesActivos
+);
+
+
 module.exports = router;

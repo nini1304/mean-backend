@@ -44,3 +44,14 @@ exports.listarDuenos = async (req, res) => {
     res.status(500).json({ message: "Error al listar clientes" });
   }
 };
+
+exports.listarClientesActivos = async (req, res) => {
+  try {
+    const clientes = await userService.listarClientesActivos();
+    res.json(clientes);
+  } catch (error) {
+    console.error("Error al listar clientes activos:", error);
+    res.status(500).json({ message: "Error al listar clientes activos" });
+  }
+};
+

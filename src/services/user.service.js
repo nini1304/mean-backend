@@ -43,6 +43,21 @@ class UserService {
       .lean();
   }
 
+  async listarClientesActivos() {
+  const rolCliente = await Role.findOne({ nombre: "CLIENTE" }).lean();
+
+  if (!rolCliente) return [];
+
+  return await User.find({
+    id_rol: rolCliente._id,
+    eliminado: false,
+  })
+    .populate("id_rol", "nombre")
+    .sort({ createdAt: -1 })
+    .lean();
+}
+
+
   
 }
 
