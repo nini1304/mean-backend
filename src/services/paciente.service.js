@@ -244,6 +244,102 @@ class PacienteService {
       duenoEliminado,
     };
   }
+
+  async actualizarPacientePorMascota(id_mascota, payload) {
+  const { mascota, dueno } = payload;
+
+  // 1) Validar mascota exista y esté activa
+  const mascotaActual = await Mascota.findOne({ _id: id_mascota, eliminado: false }).lean();
+  if (!mascotaActual) {
+    const error = new Error("Mascota no encontrada o eliminada");
+    error.code = "MASCOTA_NO_ENCONTRADA";
+    throw error;
+  }
+
+  // 2) Buscar relación activa para obtener dueño
+  const relacion = await UsuarioMascota.findOne({ id_mascota, activo: true }).lean();
+  if (!relacion) {
+    const error = new Error("No existe relación activa para esta mascota");
+    error.code = "RELACION_NO_EXISTE";
+    throw error;
+  }
+
+  const id_usuario = relacion.id_usuario;
+
+  // 3) Actualizar mascota (solo campos permitidos)
+  if (mascota) {
+    const updateMascota = {};
+    const allowedMascota = ["nombre", "tipo_mascota", "edad", "peso", "sexo", "raza"];
+
+    for (const key of allowedMascota) {
+      if (mascota[key] !== undefined) updateMascota[key] = mascota[key];
+    }
+
+    if (Object.keys(updateMascota).length > 0) {
+      await Mascota.updateOne(
+        { _id: id_mascota, eliminado: false },
+        { $set: updateMascota }
+      );
+    }
+  }
+
+  // 4) Actualizar dueño (User) (solo campos permitidos)
+  if (dueno) {
+    const updateDueno = {};
+    const allowedDueno = ["nombre_completo", "correo", "numero_celular"];
+
+    for (const key of allowedDueno) {
+      if (dueno[key] !== undefined) updateDueno[key] = dueno[key];
+    }
+
+    // Si se intenta actualizar correo, respeta unique. Si choca, Mongo tirará error 11000.
+    if (Object.keys(updateDueno).length > 0) {
+      await User.updateOne(
+        { _id: id_usuario, eliminado: false },
+        { $set: updateDueno }
+      );
+    }
+  }
+
+  // 5) Devolver el “paciente” actualizado ya listo para la tabla
+  const actualizado = await UsuarioMascota.findOne({ id_mascota, activo: true })
+    .populate({ path: "id_usuario", select: "nombre_completo correo numero_celular eliminado" })
+    .populate({
+      path: "id_mascota",
+      match: { eliminado: false },
+      populate: { path: "tipo_mascota", select: "tipo_mascota" },
+    })
+    .lean();
+
+  if (!actualizado || !actualizado.id_mascota) {
+    const error = new Error("No se pudo obtener el paciente actualizado");
+    error.code = "ACTUALIZACION_FALLO";
+    throw error;
+  }
+
+  return {
+    id_relacion: actualizado._id,
+    activo: actualizado.activo,
+    mascota: {
+      id: actualizado.id_mascota._id,
+      nombre: actualizado.id_mascota.nombre,
+      edad: actualizado.id_mascota.edad,
+      peso: actualizado.id_mascota.peso,
+      sexo: actualizado.id_mascota.sexo,
+      raza: actualizado.id_mascota.raza,
+      tipo_mascota: actualizado.id_mascota.tipo_mascota?.tipo_mascota,
+      id_tipo_mascota: actualizado.id_mascota.tipo_mascota?._id,
+    },
+    dueno: {
+      id: actualizado.id_usuario?._id,
+      nombre_completo: actualizado.id_usuario?.nombre_completo,
+      correo: actualizado.id_usuario?.correo,
+      numero_celular: actualizado.id_usuario?.numero_celular,
+    },
+    updatedAt: actualizado.updatedAt,
+  };
+}
+
 }
 
 module.exports = new PacienteService();

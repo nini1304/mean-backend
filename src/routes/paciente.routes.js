@@ -8,23 +8,30 @@ const { requerirRol } = require("../middlewares/role.middleware");
 // Normalmente solo ADMIN/OPERADOR registra pacientes en clínica
 router.post(
   "/",
-//   autenticarJWT,
-//   requerirRol(["ADMIN"]),
+  autenticarJWT,
+  requerirRol(["RECEPCIONISTA"]),
   controller.registrarClienteConMascotas
 );
 
 router.post(
   "/:idUsuario/mascotas",
-//   autenticarJWT,
-//   requerirRol(["ADMIN"]),
+  autenticarJWT,
+  requerirRol(["RECEPCIONISTA"]),
   controller.registrarMascotasParaClienteExistente
 );
 
 router.delete(
   "/:idMascota",
-//   autenticarJWT,
-//   requerirRol(["ADMIN"]),
+  autenticarJWT,
+  requerirRol(["RECEPCIONISTA"]),
   controller.eliminarPaciente
+);
+
+router.put(
+  "/:idMascota",
+  autenticarJWT,
+  requerirRol(["RECEPCIONISTA"]),
+  controller.actualizarPacientePorMascota
 );
 
 

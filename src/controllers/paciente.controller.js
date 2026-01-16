@@ -104,3 +104,44 @@ exports.eliminarPaciente = async (req, res) => {
     res.status(500).json({ message: "Error al eliminar paciente" });
   }
 };
+
+exports.actualizarPacientePorMascota = async (req, res) => {
+  try {
+    const { idMascota } = req.params;
+    const { mascota, dueno } = req.body;
+
+    if (!mascota && !dueno) {
+      return res.status(400).json({
+        message: "Debes enviar al menos 'mascota' o 'dueno' para actualizar.",
+      });
+    }
+
+    const actualizado = await pacienteService.actualizarPacientePorMascota(idMascota, {
+      mascota,
+      dueno,
+    });
+
+    res.json({
+      message: "Paciente actualizado correctamente",
+      data: actualizado,
+    });
+  } catch (error) {
+    console.error("Error actualizando paciente:", error);
+
+    if (error.code === "MASCOTA_NO_ENCONTRADA") {
+      return res.status(404).json({ message: error.message });
+    }
+
+    if (error.code === "RELACION_NO_EXISTE") {
+      return res.status(400).json({ message: error.message });
+    }
+
+    // correo duplicado si cambias correo del dueño
+    if (error.code === 11000) {
+      return res.status(409).json({ message: "Ya existe un usuario con ese correo" });
+    }
+
+    res.status(500).json({ message: "Error al actualizar paciente" });
+  }
+};
+

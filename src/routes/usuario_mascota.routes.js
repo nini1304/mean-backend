@@ -8,8 +8,8 @@ const { requerirRol } = require("../middlewares/role.middleware");
 // (si quieres que solo ADMIN liste todo)
 router.get(
   "/mascotas",
-//   autenticarJWT,
-//   requerirRol(["ADMIN"]),
+  autenticarJWT,
+  requerirRol(["RECEPCIONISTA"]),
   controller.listarMascotasConDueno
 );
 
