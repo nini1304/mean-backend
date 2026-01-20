@@ -3,6 +3,8 @@ const crypto = require("crypto");
 const HistorialClinico = require("../models/historial_clinico.model");
 const Mascota = require("../models/mascota.model");
 const { minioClient, asegurarBucket } = require("../config/minio");
+const UsuarioMascota = require("../models/usuario_mascota.model");
+
 
 class HistorialClinicoService {
   async crearHistorialSiNoExiste(id_mascota) {
@@ -114,7 +116,31 @@ class HistorialClinicoService {
     .populate("examenes.id_veterinario", "especialidad turno id_usuario")
     .lean();
 
-  return historial; // si crearSiNoExiste=false, podría ser null
+  // si crearSiNoExiste=false podría venir null
+  if (!historial) return null;
+
+  // 2) Traer dueño (relación activa) + datos del usuario
+  const relacion = await UsuarioMascota.findOne({
+    id_mascota,
+    activo: true,
+  })
+    .populate("id_usuario", "nombre_completo correo numero_celular eliminado")
+    .lean();
+
+  const dueno = relacion?.id_usuario
+    ? {
+        id: relacion.id_usuario._id,
+        nombre_completo: relacion.id_usuario.nombre_completo,
+        correo: relacion.id_usuario.correo,
+        numero_celular: relacion.id_usuario.numero_celular,
+      }
+    : null;
+
+  // 3) Adjuntar al response
+  return {
+    ...historial,
+    dueno, // 👈 aquí ya te llega el propietario
+  };
 }
 }
 
