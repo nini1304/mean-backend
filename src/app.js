@@ -33,6 +33,10 @@ app.use("/api/tipo-mascota", tipoMascotaRoutes);
 app.use("/api/mascotas", mascotaRoutes);
 app.use("/api/usuario-mascota", usuarioMascotaRoutes);
 app.use("/api/pacientes", pacienteRoutes);
+app.use("/api/historial", require("./routes/historial_clinico.routes"));
+app.use("/api/veterinarios", require("./routes/veterinario.routes"));
+
+
 
 // Ruta de prueba
 app.get("/api/health", (req, res) => {
