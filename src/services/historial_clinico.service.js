@@ -26,6 +26,112 @@ class HistorialClinicoService {
     return historial;
   }
 
+  async agregarConsulta(id_mascota, data) {
+    await this.crearHistorialSiNoExiste(id_mascota);
+
+    // validaciones mínimas (además de las del schema)
+    if (!data?.motivo_consulta || !data?.peso_en_consulta || !data?.id_veterinario) {
+      const err = new Error("Faltan campos obligatorios: motivo_consulta, peso_en_consulta, id_veterinario");
+      err.code = "VALIDACION";
+      throw err;
+    }
+
+    const consultaDoc = {
+      fecha: data.fecha ? new Date(data.fecha) : new Date(),
+      id_veterinario: data.id_veterinario,
+      motivo_consulta: data.motivo_consulta,
+      peso_en_consulta: Number(data.peso_en_consulta),
+      temperatura: data.temperatura ?? null,
+      diagnostico: data.diagnostico || "",
+      tratamiento: data.tratamiento || "",
+      observaciones: data.observaciones || "",
+    };
+
+    const historial = await HistorialClinico.findOneAndUpdate(
+      { id_mascota, eliminado: false },
+      { $push: { consultas: consultaDoc } },
+      { new: true }
+    ).lean();
+
+    return historial;
+  }
+
+  async agregarVacuna(id_mascota, data) {
+    await this.crearHistorialSiNoExiste(id_mascota);
+
+    if (!data?.vacuna || !data?.fecha_aplicacion) {
+      const err = new Error("Faltan campos obligatorios: vacuna, fecha_aplicacion");
+      err.code = "VALIDACION";
+      throw err;
+    }
+
+    const vacunaDoc = {
+      vacuna: data.vacuna,
+      fecha_aplicacion: new Date(data.fecha_aplicacion),
+      fecha_refuerzo: data.fecha_refuerzo ? new Date(data.fecha_refuerzo) : null,
+      id_veterinario: data.id_veterinario || null,
+      observaciones: data.observaciones || "",
+    };
+
+    return await HistorialClinico.findOneAndUpdate(
+      { id_mascota, eliminado: false },
+      { $push: { vacunas: vacunaDoc } },
+      { new: true }
+    ).lean();
+  }
+
+  async agregarDesparasitacion(id_mascota, data) {
+    await this.crearHistorialSiNoExiste(id_mascota);
+
+    if (!data?.producto || !data?.fecha || !data?.dosis) {
+      const err = new Error("Faltan campos obligatorios: producto, fecha, dosis");
+      err.code = "VALIDACION";
+      throw err;
+    }
+
+    const desparasitacionDoc = {
+      producto: data.producto,
+      fecha: new Date(data.fecha),
+      dosis: data.dosis,
+      proxima: data.proxima ? new Date(data.proxima) : null,
+      id_veterinario: data.id_veterinario || null,
+      observaciones: data.observaciones || "",
+    };
+
+    return await HistorialClinico.findOneAndUpdate(
+      { id_mascota, eliminado: false },
+      { $push: { desparasitaciones: desparasitacionDoc } },
+      { new: true }
+    ).lean();
+  }
+
+  async agregarProcedimiento(id_mascota, data) {
+    await this.crearHistorialSiNoExiste(id_mascota);
+
+    if (!data?.tipo_procedimiento || !data?.fecha) {
+      const err = new Error("Faltan campos obligatorios: tipo_procedimiento, fecha");
+      err.code = "VALIDACION";
+      throw err;
+    }
+
+    const procedimientoDoc = {
+      tipo_procedimiento: data.tipo_procedimiento,
+      fecha: new Date(data.fecha),
+      anestesia_riesgo: data.anestesia_riesgo || "",
+      notas: data.notas || "",
+      complicaciones: data.complicaciones || "",
+      id_veterinario: data.id_veterinario || null,
+    };
+
+    return await HistorialClinico.findOneAndUpdate(
+      { id_mascota, eliminado: false },
+      { $push: { procedimientos: procedimientoDoc } },
+      { new: true }
+    ).lean();
+  }
+
+
+
   async subirAdjuntoAExamen({ id_mascota, examen, file }) {
     // examen: { tipo, fecha, resultado?, valores?, id_veterinario? }
     if (!file) {
@@ -108,7 +214,11 @@ class HistorialClinicoService {
     id_mascota,
     eliminado: false,
   })
-    .populate("id_mascota") // opcional: trae datos de la mascota
+    .populate({
+  path: "id_mascota",
+  populate: { path: "tipo_mascota", select: "tipo_mascota" },
+})
+
     .populate("consultas.id_veterinario", "especialidad turno id_usuario")
     .populate("vacunas.id_veterinario", "especialidad turno id_usuario")
     .populate("desparasitaciones.id_veterinario", "especialidad turno id_usuario")

@@ -8,7 +8,10 @@ const { requerirRol } = require("../middlewares/role.middleware");
 router.post("/", controller.crearVeterinario);
 
 // GET /api/veterinarios (ADMIN u OPERADOR, ajusta a tu gusto)
-router.get("/", autenticarJWT, requerirRol(["ADMIN", "OPERADOR"]), controller.listarVeterinarios);
+router.get("/", controller.listarVeterinarios);router.get(
+  "/",
+  controller.listarVeterinarios
+);
 
 // DELETE lógico /api/veterinarios/:id (solo ADMIN)
 router.delete("/:id", autenticarJWT, requerirRol(["ADMIN"]), controller.eliminarVeterinario);

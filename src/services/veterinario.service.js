@@ -46,11 +46,31 @@ class VeterinarioService {
   }
 
   async listarVeterinarios() {
-    return await Veterinario.find({ eliminado: false })
-      .populate("id_usuario", "nombre_completo correo numero_celular")
-      .sort({ createdAt: -1 })
+    const veterinarios = await Veterinario.find({ eliminado: false })
+      .populate({
+        path: "id_usuario",
+        match: { eliminado: false },
+        select: "nombre_completo correo numero_celular",
+      })
       .lean();
+
+    // Por seguridad, filtrar si el usuario fue eliminado
+    return veterinarios
+      .filter((v) => v.id_usuario)
+      .map((v) => ({
+        id: v._id,
+        especialidad: v.especialidad,
+        usuario: {
+          id: v.id_usuario._id,
+          nombre_completo: v.id_usuario.nombre_completo,
+          correo: v.id_usuario.correo,
+          numero_celular: v.id_usuario.numero_celular,
+        },
+        createdAt: v.createdAt,
+        updatedAt: v.updatedAt,
+      }));
   }
+
 
   async obtenerPorId(id_veterinario) {
     const vet = await Veterinario.findOne({ _id: id_veterinario, eliminado: false })

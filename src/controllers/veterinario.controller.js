@@ -35,10 +35,10 @@ exports.crearVeterinario = async (req, res) => {
 
 exports.listarVeterinarios = async (req, res) => {
   try {
-    const vets = await veterinarioService.listarVeterinarios();
-    res.json(vets);
+    const veterinarios = await veterinarioService.listarVeterinarios();
+    res.json(veterinarios);
   } catch (error) {
-    console.error("Error al listar veterinarios:", error);
+    console.error("Error listando veterinarios:", error);
     res.status(500).json({ message: "Error al listar veterinarios" });
   }
 };
