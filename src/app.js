@@ -35,6 +35,9 @@ app.use("/api/usuario-mascota", usuarioMascotaRoutes);
 app.use("/api/pacientes", pacienteRoutes);
 app.use("/api/historial", require("./routes/historial_clinico.routes"));
 app.use("/api/veterinarios", require("./routes/veterinario.routes"));
+app.use("/api/agenda", require("./routes/agenda.routes"));
+app.use("/api/citas", require("./routes/cita.routes"));
+app.use("/api/horarios-veterinario", require("./routes/horario_veterinario.routes"));
 
 
 
