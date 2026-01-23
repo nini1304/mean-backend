@@ -168,3 +168,85 @@ exports.obtenerPorMascota = async (req, res) => {
     res.status(500).json({ message: "Error al obtener historial clínico" });
   }
 };
+
+exports.actualizarConsulta = async (req, res) => {
+  try {
+    const { id_mascota, id_consulta } = req.params;
+    const historial = await historialService.actualizarConsulta(id_mascota, id_consulta, req.body);
+    res.json({ message: "Consulta actualizada", historial });
+  } catch (e) {
+    console.error(e);
+    if (e.code === "SUBDOC_NO_ENCONTRADO") return res.status(404).json({ message: e.message });
+    if (e.code === "VALIDACION") return res.status(400).json({ message: e.message });
+    res.status(500).json({ message: "Error al actualizar consulta" });
+  }
+};
+
+exports.actualizarVacuna = async (req, res) => {
+  try {
+    const { id_mascota, id_vacuna } = req.params;
+    const historial = await historialService.actualizarVacuna(id_mascota, id_vacuna, req.body);
+    res.json({ message: "Vacuna actualizada", historial });
+  } catch (e) {
+    console.error(e);
+    if (e.code === "SUBDOC_NO_ENCONTRADO") return res.status(404).json({ message: e.message });
+    if (e.code === "VALIDACION") return res.status(400).json({ message: e.message });
+    res.status(500).json({ message: "Error al actualizar vacuna" });
+  }
+};
+
+exports.actualizarDesparasitacion = async (req, res) => {
+  try {
+    const { id_mascota, id_desparasitacion } = req.params;
+    const historial = await historialService.actualizarDesparasitacion(id_mascota, id_desparasitacion, req.body);
+    res.json({ message: "Desparasitación actualizada", historial });
+  } catch (e) {
+    console.error(e);
+    if (e.code === "SUBDOC_NO_ENCONTRADO") return res.status(404).json({ message: e.message });
+    if (e.code === "VALIDACION") return res.status(400).json({ message: e.message });
+    res.status(500).json({ message: "Error al actualizar desparasitación" });
+  }
+};
+
+exports.actualizarProcedimiento = async (req, res) => {
+  try {
+    const { id_mascota, id_procedimiento } = req.params;
+    const historial = await historialService.actualizarProcedimiento(id_mascota, id_procedimiento, req.body);
+    res.json({ message: "Procedimiento actualizado", historial });
+  } catch (e) {
+    console.error(e);
+    if (e.code === "SUBDOC_NO_ENCONTRADO") return res.status(404).json({ message: e.message });
+    if (e.code === "VALIDACION") return res.status(400).json({ message: e.message });
+    res.status(500).json({ message: "Error al actualizar procedimiento" });
+  }
+};
+
+exports.actualizarExamen = async (req, res) => {
+  try {
+    const { id_mascota, id_examen } = req.params;
+    const historial = await historialService.actualizarExamen(id_mascota, id_examen, req.body);
+    res.json({ message: "Examen actualizado", historial });
+  } catch (e) {
+    console.error(e);
+    if (e.code === "SUBDOC_NO_ENCONTRADO") return res.status(404).json({ message: e.message });
+    if (e.code === "VALIDACION") return res.status(400).json({ message: e.message });
+    res.status(500).json({ message: "Error al actualizar examen" });
+  }
+};
+
+exports.subirAdjuntoAExamenExistente = async (req, res) => {
+  try {
+    const { id_mascota, id_examen } = req.params;
+    const data = await historialService.agregarAdjuntoAExamenExistente({
+      id_mascota,
+      id_examen,
+      file: req.file,
+    });
+    res.status(201).json({ message: "Adjunto agregado al examen", data });
+  } catch (e) {
+    console.error(e);
+    if (e.code === "ARCHIVO_REQUERIDO") return res.status(400).json({ message: e.message });
+    if (e.code === "SUBDOC_NO_ENCONTRADO") return res.status(404).json({ message: e.message });
+    res.status(500).json({ message: "Error al adjuntar archivo al examen" });
+  }
+};

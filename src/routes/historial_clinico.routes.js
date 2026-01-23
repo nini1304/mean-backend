@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const c = require("../controllers/historial_clinico.controller");
 const controller = require("../controllers/historial_clinico.controller");
 const { upload } = require("../middlewares/upload.middleware");
 const { autenticarJWT } = require("../middlewares/auth.middleware");
@@ -65,5 +66,19 @@ router.get(
   controller.obtenerPorMascota
 );
 
+
+// PUT = actualizar
+router.put("/:id_mascota/consultas/:id_consulta", c.actualizarConsulta);
+router.put("/:id_mascota/vacunas/:id_vacuna", c.actualizarVacuna);
+router.put("/:id_mascota/desparasitaciones/:id_desparasitacion", c.actualizarDesparasitacion);
+router.put("/:id_mascota/procedimientos/:id_procedimiento", c.actualizarProcedimiento);
+router.put("/:id_mascota/examenes/:id_examen", c.actualizarExamen);
+
+// subir adjunto a un examen existente (multipart)
+router.post(
+  "/:id_mascota/examenes/:id_examen/adjuntos",
+  upload.single("archivo"),
+  c.subirAdjuntoAExamenExistente
+);
 
 module.exports = router;
