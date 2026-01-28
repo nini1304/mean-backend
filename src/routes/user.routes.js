@@ -28,5 +28,14 @@ router.get(
   userController.listarClientesActivos
 );
 
+// GET /api/users/activos-sin-veterinario
+router.get("/activos-sin-veterinario", userController.listarUsuariosActivosSinVeterinario);
+
+// POST /api/users/crear-contrasena
+router.post("/crear-contrasena", userController.crearUsuarioConContrasena);
+
+router.put("/:id", userController.actualizarUsuario);
+router.delete("/:id", userController.eliminarUsuarioLogico);
+
 
 module.exports = router;

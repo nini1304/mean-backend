@@ -204,10 +204,11 @@ class CitaService {
             end: endDate,
             titulo: payload.titulo || "",
             motivo: payload.motivo || "",
-            observaciones: payload.observaciones || "",
+            notas: payload.notas || "",
             estado: payload.estado || "PENDIENTE",
             eliminado: false,
         });
+
 
         return await Cita.findById(doc._id)
             .populate({ path: "id_mascota", populate: { path: "tipo_mascota", select: "tipo_mascota" } })
@@ -305,6 +306,31 @@ class CitaService {
 
         return actualizado;
     }
+
+    async cambiarEstado(id_cita, nuevoEstado) {
+        const permitidos = ["PENDIENTE", "CONFIRMADA", "CANCELADA", "NO_ASISTIO", "COMPLETADA"];
+
+        if (!permitidos.includes(nuevoEstado)) {
+            const err = new Error(`Estado inválido. Permitidos: ${permitidos.join(", ")}`);
+            err.code = "VALIDACION";
+            throw err;
+        }
+
+        const actualizado = await Cita.findOneAndUpdate(
+            { _id: id_cita, eliminado: false },
+            { $set: { estado: nuevoEstado } },
+            { new: true }
+        ).lean();
+
+        if (!actualizado) {
+            const err = new Error("Cita no encontrada");
+            err.code = "NO_ENCONTRADO";
+            throw err;
+        }
+
+        return actualizado;
+    }
+
 }
 
 module.exports = new CitaService();

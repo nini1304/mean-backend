@@ -26,3 +26,13 @@ exports.listarRoles = async (req, res) => {
     res.status(500).json({ message: "Error al listar roles" });
   }
 };
+
+exports.listarRolesSinVeterinario = async (req, res) => {
+  try {
+    const roles = await roleService.listarRolesSinVeterinario();
+    res.json(roles);
+  } catch (error) {
+    console.error("Error listando roles sin VETERINARIO:", error);
+    res.status(500).json({ message: "Error al listar roles" });
+  }
+};

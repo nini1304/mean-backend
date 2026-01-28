@@ -55,3 +55,75 @@ exports.listarClientesActivos = async (req, res) => {
   }
 };
 
+exports.listarUsuariosActivosSinVeterinario = async (req, res) => {
+  try {
+    const usuarios = await userService.listarUsuariosActivosSinVeterinario();
+    res.json(usuarios);
+  } catch (error) {
+    console.error("Error listando usuarios sin VETERINARIO:", error);
+    res.status(500).json({ message: "Error al listar usuarios" });
+  }
+};
+
+exports.crearUsuarioConContrasena = async (req, res) => {
+  try {
+    const creado = await userService.crearUsuarioConContrasena(req.body);
+    res.status(201).json({ message: "Usuario creado", data: creado });
+  } catch (error) {
+    console.error("Error creando usuario con contraseña:", error);
+
+    const map = {
+      VALIDACION: 400,
+      ROL_NO_ENCONTRADO: 404,
+      CORREO_DUPLICADO: 409,
+    };
+
+    if (map[error.code]) return res.status(map[error.code]).json({ message: error.message });
+
+    // por si igual se dispara el 11000 de Mongo
+    if (error.code === 11000) return res.status(409).json({ message: "El correo ya está registrado" });
+
+    res.status(500).json({ message: "Error al crear usuario" });
+  }
+};
+
+exports.actualizarUsuario = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const actualizado = await userService.actualizarUsuario(id, req.body);
+    res.json({ message: "Usuario actualizado", data: actualizado });
+  } catch (error) {
+    console.error("Error actualizando usuario:", error);
+
+    const map = {
+      VALIDACION: 400,
+      NO_ENCONTRADO: 404,
+      ROL_NO_ENCONTRADO: 404,
+      CORREO_DUPLICADO: 409,
+    };
+
+    if (map[error.code]) return res.status(map[error.code]).json({ message: error.message });
+
+    if (error.code === 11000) return res.status(409).json({ message: "El correo ya está registrado" });
+
+    res.status(500).json({ message: "Error al actualizar usuario" });
+  }
+};
+
+// DELETE /api/users/:id (borrado lógico)
+exports.eliminarUsuarioLogico = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const actualizado = await userService.eliminarUsuarioLogico(id);
+    res.json({ message: "Usuario eliminado lógicamente", data: actualizado });
+  } catch (error) {
+    console.error("Error eliminando usuario:", error);
+
+    if (error.code === "NO_ENCONTRADO") {
+      return res.status(404).json({ message: error.message });
+    }
+
+    res.status(500).json({ message: "Error al eliminar usuario" });
+  }
+};
+

@@ -80,3 +80,26 @@ exports.borrarLogico = async (req, res) => {
     res.status(500).json({ message: "Error al eliminar cita" });
   }
 };
+
+
+exports.cambiarEstado = async (req, res) => {
+  try {
+    const { id_cita } = req.params;
+    const { estado } = req.body;
+
+    if (!estado) return res.status(400).json({ message: "Campo requerido: estado" });
+
+    const actualizado = await citaService.cambiarEstado(id_cita, estado);
+    res.json({ message: "Estado actualizado", data: actualizado });
+  } catch (error) {
+    console.error("Error cambiando estado:", error);
+
+    const map = {
+      VALIDACION: 400,
+      NO_ENCONTRADO: 404,
+    };
+
+    if (map[error.code]) return res.status(map[error.code]).json({ message: error.message });
+    res.status(500).json({ message: "Error al cambiar estado" });
+  }
+};

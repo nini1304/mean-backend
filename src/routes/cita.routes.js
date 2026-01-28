@@ -18,4 +18,7 @@ router.patch("/:id_cita/cancelar", c.cancelarCita);
 // Borrado lógico
 router.delete("/:id_cita", c.borrarLogico);
 
+router.patch("/:id_cita/estado", c.cambiarEstado);
+
+
 module.exports = router;

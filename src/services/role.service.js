@@ -16,6 +16,13 @@ class RoleService {
   async obtenerPorId(id) {
     return await Role.findById(id).lean();
   }
+
+  async listarRolesSinVeterinario() {
+  return await Role.find({ nombre: { $ne: "VETERINARIO" } })
+    .sort({ nombre: 1 })
+    .lean();
+}
+
 }
 
 module.exports = new RoleService();
