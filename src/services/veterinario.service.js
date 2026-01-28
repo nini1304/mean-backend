@@ -1,8 +1,180 @@
 const Veterinario = require("../models/veterinario.model");
 const User = require("../models/user.model");
 const Role = require("../models/role.model");
+const contrasenaService = require("./contrasena.service");
+const HorarioVeterinario = require("../models/horario_veterinario.model");
+
+
+function validarHHMM(s) {
+  // valida "08:00"
+  return typeof s === "string" && /^\d{2}:\d{2}$/.test(s);
+}
+
+function hhmmToMinutes(hhmm) {
+  const [h, m] = hhmm.split(":").map(Number);
+  return h * 60 + m;
+}
 
 class VeterinarioService {
+
+     async crearVeterinarioCompleto(payload) {
+    const { usuario, contrasena, especialidad, horarios } = payload || {};
+
+    if (!usuario?.nombre_completo || !usuario?.correo || !usuario?.numero_celular) {
+      const err = new Error("Campos obligatorios: usuario.nombre_completo, usuario.correo, usuario.numero_celular");
+      err.code = "VALIDACION";
+      throw err;
+    }
+    if (!contrasena) {
+      const err = new Error("Campo obligatorio: contrasena");
+      err.code = "VALIDACION";
+      throw err;
+    }
+    if (!especialidad) {
+      const err = new Error("Campo obligatorio: especialidad");
+      err.code = "VALIDACION";
+      throw err;
+    }
+
+    // horarios puede ser opcional, pero si viene, validar
+    if (horarios !== undefined) {
+      if (!Array.isArray(horarios)) {
+        const err = new Error("horarios debe ser un arreglo");
+        err.code = "VALIDACION";
+        throw err;
+      }
+
+      for (const h of horarios) {
+        if (h.dia_semana === undefined || h.hora_inicio === undefined || h.hora_fin === undefined) {
+          const err = new Error("Cada horario requiere: dia_semana, hora_inicio, hora_fin");
+          err.code = "VALIDACION";
+          throw err;
+        }
+        if (h.dia_semana < 0 || h.dia_semana > 6) {
+          const err = new Error("dia_semana debe estar entre 0 y 6");
+          err.code = "VALIDACION";
+          throw err;
+        }
+        if (!validarHHMM(h.hora_inicio) || !validarHHMM(h.hora_fin)) {
+          const err = new Error("hora_inicio/hora_fin deben tener formato HH:MM (ej: 08:00)");
+          err.code = "VALIDACION";
+          throw err;
+        }
+        if (hhmmToMinutes(h.hora_fin) <= hhmmToMinutes(h.hora_inicio)) {
+          const err = new Error("hora_fin debe ser mayor que hora_inicio");
+          err.code = "VALIDACION";
+          throw err;
+        }
+      }
+    }
+
+    // rollback best-effort
+    let userCreado = null;
+    let vetCreado = null;
+    let horariosCreados = [];
+
+    try {
+      // 1) rol VETERINARIO
+      const rolVet = await Role.findOne({ nombre: "VETERINARIO" }).lean();
+      if (!rolVet) {
+        const err = new Error("No existe el rol VETERINARIO en la base de datos");
+        err.code = "ROL_VET_NO_EXISTE";
+        throw err;
+      }
+
+      // 2) validar correo duplicado
+      const correoNorm = usuario.correo.toLowerCase().trim();
+      const dup = await User.findOne({ correo: correoNorm }).lean();
+      if (dup) {
+        const err = new Error("El correo ya está registrado");
+        err.code = "CORREO_DUPLICADO";
+        throw err;
+      }
+
+      // 3) crear user
+      userCreado = await User.create({
+        nombre_completo: usuario.nombre_completo.trim(),
+        correo: correoNorm,
+        numero_celular: usuario.numero_celular.trim(),
+        id_rol: rolVet._id,
+        eliminado: false,
+      });
+
+      // 4) guardar contraseña
+      await contrasenaService.guardarContrasena(userCreado._id, contrasena, "CREACION");
+
+      // 5) crear perfil veterinario
+      vetCreado = await Veterinario.create({
+        id_usuario: userCreado._id,
+        especialidad: String(especialidad).trim(),
+        eliminado: false,
+      });
+
+      // 6) crear horarios (opcional)
+      if (Array.isArray(horarios) && horarios.length > 0) {
+        // si te preocupa duplicado por dia, insertMany fallará por índice unique
+        horariosCreados = await HorarioVeterinario.insertMany(
+          horarios.map((h) => ({
+            id_veterinario: vetCreado._id,
+            dia_semana: h.dia_semana,
+            hora_inicio: h.hora_inicio,
+            hora_fin: h.hora_fin,
+            activo: h.activo !== undefined ? !!h.activo : true,
+            eliminado: false,
+          }))
+        );
+      }
+
+      // respuesta final
+      const vet = await Veterinario.findById(vetCreado._id)
+        .populate("id_usuario", "nombre_completo correo numero_celular")
+        .lean();
+
+      return {
+        veterinario: {
+          id: vet._id,
+          especialidad: vet.especialidad,
+          usuario: vet.id_usuario,
+        },
+        horarios: horariosCreados.map((h) => ({
+          id: h._id,
+          dia_semana: h.dia_semana,
+          hora_inicio: h.hora_inicio,
+          hora_fin: h.hora_fin,
+          activo: h.activo,
+        })),
+      };
+    } catch (error) {
+      // rollback best effort
+      try {
+        if (horariosCreados.length > 0) {
+          const ids = horariosCreados.map((h) => h._id);
+          await HorarioVeterinario.deleteMany({ _id: { $in: ids } });
+        }
+        if (vetCreado) {
+          await Veterinario.deleteOne({ _id: vetCreado._id });
+        }
+        if (userCreado) {
+          const Contrasena = require("../models/contrasena.model");
+          await Contrasena.deleteMany({ id_usuario: userCreado._id });
+          await User.deleteOne({ _id: userCreado._id });
+        }
+      } catch (rollbackError) {
+        console.error("Rollback falló:", rollbackError);
+      }
+
+      // mapear error por índice unique de horarios o veterinario
+      if (error?.code === 11000) {
+        const err = new Error("Duplicado: puede ser correo, veterinario ya existe, o horario repetido por día");
+        err.code = "DUPLICADO";
+        throw err;
+      }
+
+      throw error;
+    }
+  }
+
+
   async crearVeterinario({ id_usuario, especialidad }) {
     // 1) validar usuario existe y no está eliminado
     const user = await User.findOne({ _id: id_usuario, eliminado: false })
@@ -101,6 +273,65 @@ class VeterinarioService {
 
     return actualizado;
   }
+
+    async listarVeterinariosConHorarios({ soloActivos = true } = {}) {
+    // 1) Veterinarios (no eliminados) + usuario
+    const veterinarios = await Veterinario.find({ eliminado: false })
+      .populate({
+        path: "id_usuario",
+        match: { eliminado: false },
+        select: "nombre_completo correo numero_celular",
+      })
+      .lean();
+
+    // filtrar si el usuario fue eliminado
+    const vetsOk = veterinarios.filter((v) => v.id_usuario);
+
+    if (vetsOk.length === 0) return [];
+
+    const idsVet = vetsOk.map((v) => v._id);
+
+    // 2) Horarios de esos veterinarios
+    const filtroHorarios = {
+      id_veterinario: { $in: idsVet },
+      eliminado: false,
+    };
+    if (soloActivos) filtroHorarios.activo = true;
+
+    const horarios = await HorarioVeterinario.find(filtroHorarios)
+      .sort({ id_veterinario: 1, dia_semana: 1, hora_inicio: 1 })
+      .lean();
+
+    // 3) Agrupar horarios por veterinario
+    const mapHorarios = new Map(); // key: vetId -> array
+    for (const h of horarios) {
+      const key = String(h.id_veterinario);
+      if (!mapHorarios.has(key)) mapHorarios.set(key, []);
+      mapHorarios.get(key).push({
+        id: h._id,
+        dia_semana: h.dia_semana,
+        hora_inicio: h.hora_inicio,
+        hora_fin: h.hora_fin,
+        activo: h.activo,
+      });
+    }
+
+    // 4) Respuesta final
+    return vetsOk.map((v) => ({
+      id: v._id,
+      especialidad: v.especialidad,
+      usuario: {
+        id: v.id_usuario._id,
+        nombre_completo: v.id_usuario.nombre_completo,
+        correo: v.id_usuario.correo,
+        numero_celular: v.id_usuario.numero_celular,
+      },
+      horarios: mapHorarios.get(String(v._id)) || [],
+      createdAt: v.createdAt,
+      updatedAt: v.updatedAt,
+    }));
+  }
+
 }
 
 module.exports = new VeterinarioService();

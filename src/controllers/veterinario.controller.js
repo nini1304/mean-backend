@@ -62,3 +62,35 @@ exports.eliminarVeterinario = async (req, res) => {
     res.status(500).json({ message: "Error al eliminar veterinario" });
   }
 };
+
+exports.crearVeterinarioCompleto = async (req, res) => {
+  try {
+    const data = await veterinarioService.crearVeterinarioCompleto(req.body);
+    res.status(201).json({ message: "Veterinario creado (completo)", data });
+  } catch (error) {
+    console.error("Error creando veterinario completo:", error);
+
+    const map = {
+      VALIDACION: 400,
+      ROL_VET_NO_EXISTE: 400,
+      CORREO_DUPLICADO: 409,
+      DUPLICADO: 409,
+    };
+
+    if (map[error.code]) return res.status(map[error.code]).json({ message: error.message });
+    res.status(500).json({ message: "Error al crear veterinario (completo)" });
+  }
+};
+
+exports.listarVeterinariosConHorarios = async (req, res) => {
+  try {
+    // query opcional: ?soloActivos=true|false
+    const soloActivos = req.query.soloActivos !== "false";
+
+    const data = await veterinarioService.listarVeterinariosConHorarios({ soloActivos });
+    res.json(data);
+  } catch (error) {
+    console.error("Error listando veterinarios con horarios:", error);
+    res.status(500).json({ message: "Error al listar veterinarios con horarios" });
+  }
+};
