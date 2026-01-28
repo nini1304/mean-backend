@@ -94,3 +94,40 @@ exports.listarVeterinariosConHorarios = async (req, res) => {
     res.status(500).json({ message: "Error al listar veterinarios con horarios" });
   }
 };
+
+exports.actualizarVeterinarioCompleto = async (req, res) => {
+  try {
+    const { id } = req.params; // id_veterinario
+    const data = await veterinarioService.actualizarVeterinarioCompleto(id, req.body);
+    res.json({ message: "Veterinario actualizado", data });
+  } catch (error) {
+    console.error("Error actualizando veterinario:", error);
+
+    const map = {
+      VALIDACION: 400,
+      VETERINARIO_NO_ENCONTRADO: 404,
+      USUARIO_NO_ENCONTRADO: 404,
+      CORREO_DUPLICADO: 409,
+    };
+
+    if (map[error.code]) return res.status(map[error.code]).json({ message: error.message });
+    res.status(500).json({ message: "Error al actualizar veterinario" });
+  }
+};
+
+exports.eliminarLogico = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await veterinarioService.eliminarLogico(id);
+    return res.json({ ok: true, veterinario: result });
+  } catch (err) {
+    if (err.code === "VET_CON_CITAS_PENDIENTES") {
+      return res.status(409).json({ message: err.message, code: err.code });
+    }
+    if (err.code === "VETERINARIO_NO_ENCONTRADO") {
+      return res.status(404).json({ message: err.message, code: err.code });
+    }
+    return res.status(500).json({ message: err.message || "Error eliminando veterinario" });
+  }
+};
+

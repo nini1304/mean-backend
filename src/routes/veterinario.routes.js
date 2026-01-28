@@ -21,4 +21,10 @@ router.post("/completo", controller.crearVeterinarioCompleto);
 // GET /api/veterinarios/con-horarios?soloActivos=true
 router.get("/con-horarios", controller.listarVeterinariosConHorarios);
 
+router.put("/:id", controller.actualizarVeterinarioCompleto);
+
+router.delete("/:id", controller.eliminarLogico);
+
+
+
 module.exports = router;

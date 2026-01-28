@@ -44,6 +44,7 @@ const citaSchema = new mongoose.Schema(
 );
 
 // ayuda a consultas
-citaSchema.index({ id_veterinario: 1, inicio: 1, fin: 1 });
+citaSchema.index({ id_veterinario: 1, start: 1, end: 1 });
+
 
 module.exports = mongoose.model("Cita", citaSchema);
