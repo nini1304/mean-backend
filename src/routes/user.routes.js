@@ -10,32 +10,44 @@ router.post("/", userController.crearUsuario);
 // GET /api/users
 router.get(
   "/",
-  autenticarJWT,
-  requerirRol(["ADMIN"]),
+
   userController.listarUsuarios
 );
 
 router.get(
     "/clientes",
-    //  autenticarJWT, 
-    //  requerirRol(["ADMIN"]),
+   
       userController.listarDuenos);
 
 router.get(
   "/clientes-activos",
-//   autenticarJWT,
-//   requerirRol(["ADMIN"]),
+  autenticarJWT,
+  requerirRol(["ADMIN","RECEPCIONISTA"]),
   userController.listarClientesActivos
 );
 
 // GET /api/users/activos-sin-veterinario
-router.get("/activos-sin-veterinario", userController.listarUsuariosActivosSinVeterinario);
+router.get("/activos-sin-veterinario",
+  autenticarJWT,
+  requerirRol(["ADMIN"]),
+  userController.listarUsuariosActivosSinVeterinario);
 
 // POST /api/users/crear-contrasena
-router.post("/crear-contrasena", userController.crearUsuarioConContrasena);
+router.post("/crear-contrasena",
+  autenticarJWT,
+  requerirRol(["ADMIN"]),
+  userController.crearUsuarioConContrasena);
 
-router.put("/:id", userController.actualizarUsuario);
-router.delete("/:id", userController.eliminarUsuarioLogico);
+router.put("/:id",
+  autenticarJWT,
+  requerirRol(["ADMIN"]),
+  userController.actualizarUsuario);
+
+
+router.delete("/:id",
+  autenticarJWT,
+  requerirRol(["ADMIN"]),
+  userController.eliminarUsuarioLogico);
 
 
 module.exports = router;

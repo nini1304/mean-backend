@@ -9,7 +9,7 @@ const { requerirRol } = require("../middlewares/role.middleware");
 router.get(
   "/mascotas",
   autenticarJWT,
-  requerirRol(["RECEPCIONISTA"]),
+  requerirRol(["ADMIN","RECEPCIONISTA"]),
   controller.listarMascotasConDueno
 );
 

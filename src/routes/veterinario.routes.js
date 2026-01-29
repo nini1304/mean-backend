@@ -16,14 +16,26 @@ router.get("/", controller.listarVeterinarios);router.get(
 // DELETE lógico /api/veterinarios/:id (solo ADMIN)
 router.delete("/:id", autenticarJWT, requerirRol(["ADMIN"]), controller.eliminarVeterinario);
 
-router.post("/completo", controller.crearVeterinarioCompleto);
+router.post("/completo",
+   autenticarJWT,
+  requerirRol(["ADMIN"]),
+   controller.crearVeterinarioCompleto);
 
 // GET /api/veterinarios/con-horarios?soloActivos=true
-router.get("/con-horarios", controller.listarVeterinariosConHorarios);
+router.get("/con-horarios",
+  autenticarJWT,
+  requerirRol(["ADMIN"]),
+  controller.listarVeterinariosConHorarios);
 
-router.put("/:id", controller.actualizarVeterinarioCompleto);
+router.put("/:id",
+   autenticarJWT,
+  requerirRol(["ADMIN"]),
+  controller.actualizarVeterinarioCompleto);
 
-router.delete("/:id", controller.eliminarLogico);
+router.delete("/:id",
+   autenticarJWT,
+  requerirRol(["ADMIN"]),
+   controller.eliminarLogico);
 
 
 

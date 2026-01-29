@@ -9,28 +9,28 @@ const { requerirRol } = require("../middlewares/role.middleware");
 router.post(
   "/",
   autenticarJWT,
-  requerirRol(["RECEPCIONISTA"]),
+  requerirRol(["ADMIN","RECEPCIONISTA"]),
   controller.registrarClienteConMascotas
 );
 
 router.post(
   "/:idUsuario/mascotas",
   autenticarJWT,
-  requerirRol(["RECEPCIONISTA"]),
+  requerirRol(["ADMIN","RECEPCIONISTA"]),
   controller.registrarMascotasParaClienteExistente
 );
 
 router.delete(
   "/:idMascota",
   autenticarJWT,
-  requerirRol(["RECEPCIONISTA"]),
+  requerirRol(["ADMIN","RECEPCIONISTA"]),
   controller.eliminarPaciente
 );
 
 router.put(
   "/:idMascota",
   autenticarJWT,
-  requerirRol(["RECEPCIONISTA"]),
+  requerirRol(["ADMIN","RECEPCIONISTA"]),
   controller.actualizarPacientePorMascota
 );
 
