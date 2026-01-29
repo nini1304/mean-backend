@@ -7,29 +7,45 @@ exports.login = async (req, res) => {
 
     if (!correo || !contrasena) {
       return res.status(400).json({
+        code: "VALIDACION",
         message: "Los campos 'correo' y 'contrasena' son obligatorios",
       });
     }
 
     const resultado = await authService.login(correo, contrasena);
 
-    res.json({
+    return res.json({
+      code: "OK",
       message: "Login exitoso",
       token: resultado.token,
-      usuario: resultado.usuario,
-      requiereCambioContrasena: resultado.requiereCambioContrasena, // 👈 ESTO FALTABA
+      requiereCambioContrasena: resultado.requiereCambioContrasena,
     });
 
   } catch (error) {
     console.error("Error en login:", error);
 
     if (error.code === "CREDENCIALES_INVALIDAS") {
-      return res.status(401).json({ message: "Credenciales inválidas" });
+      return res.status(401).json({
+        code: error.code,
+        message: error.message || "Credenciales inválidas",
+        intentosRestantes: error.intentosRestantes, // ✅ clave
+      });
     }
 
-    res.status(500).json({ message: "Error al realizar login" });
+    if (error.code === "CUENTA_BLOQUEADA") {
+      return res.status(423).json({
+        code: error.code,
+        message: error.message,
+      });
+    }
+
+    return res.status(500).json({
+      code: "ERROR",
+      message: "Error al realizar login",
+    });
   }
 };
+
 
 
 exports.solicitarResetContrasena = async (req, res) => {

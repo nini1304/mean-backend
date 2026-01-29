@@ -8,9 +8,12 @@ const { enviarCorreo } = require("../config/mailer");
 class AuthService {
   // LOGIN: correo + contraseña
   async login(correo, contrasena_plana) {
-    const user = await User.findOne({ correo })
+    const correoNorm = (correo || "").toLowerCase().trim();
+
+    const user = await User.findOne({ correo: correoNorm, eliminado: { $ne: true } })
       .populate("id_rol", "nombre")
       .lean();
+
 
     if (!user) {
       const error = new Error("Credenciales inválidas");
@@ -18,15 +21,59 @@ class AuthService {
       throw error;
     }
 
-    // Ojo: aquí usamos la NUEVA firma de validarContrasena
+    // ✅ si está bloqueado, NO dejar loguear (aunque ponga bien la contraseña)
+    if (user.bloqueado) {
+      const error = new Error("Cuenta bloqueada. Use 'Recuperar contraseña' para restablecerla.");
+      error.code = "CUENTA_BLOQUEADA";
+      throw error;
+    }
+
     const { esValida, registro } =
       await contrasenaService.validarContrasena(user._id, contrasena_plana);
 
     if (!esValida) {
+      await User.updateOne(
+        { _id: user._id },
+        { $inc: { intentos_fallidos: 1 } },
+        { strict: false }
+      );
+
+      const after = await User.findById(user._id)
+        .select("intentos_fallidos")
+        .lean();
+
+      const intentos = after?.intentos_fallidos ?? 1;
+      const intentosMax = 3;
+      const restantes = Math.max(0, intentosMax - intentos);
+
+      if (intentos >= intentosMax) {
+        await User.updateOne(
+          { _id: user._id },
+          { $set: { bloqueado: true } },
+          { strict: false }
+        );
+
+        const error = new Error("Cuenta bloqueada por intentos fallidos. Use 'Recuperar contraseña'.");
+        error.code = "CUENTA_BLOQUEADA";
+        throw error;
+      }
+
       const error = new Error("Credenciales inválidas");
       error.code = "CREDENCIALES_INVALIDAS";
+      error.intentosRestantes = restantes;
       throw error;
     }
+
+
+
+
+    // ✅ login exitoso -> resetear intentos
+    await User.updateOne(
+      { _id: user._id },
+      { $set: { intentos_fallidos: 0 } },
+      { strict: false }
+    );
+
 
     const requiereCambioContrasena = registro.motivo === "RESET";
 
@@ -45,15 +92,15 @@ class AuthService {
       expiresIn: process.env.JWT_EXPIRES_IN || "1h",
     });
 
-    return {
-      token,
-      requiereCambioContrasena,
-    };
+    return { token, requiereCambioContrasena };
   }
 
   // OLVIDÉ MI CONTRASEÑA: generar contraseña temporal y enviarla por correo
   async solicitarResetContrasena(correo) {
-    const user = await User.findOne({ correo }).lean();
+    const correoNorm = (correo || "").toLowerCase().trim();
+    const user = await User.findOne({ correo: correoNorm, eliminado: { $ne: true } }).lean();
+
+
 
     // Por seguridad, no revelamos si existe o no
     if (!user) {
@@ -69,6 +116,13 @@ class AuthService {
       nuevaContrasena,
       "RESET"
     );
+
+    await User.updateOne(
+      { _id: user._id },
+      { $set: { bloqueado: false, intentos_fallidos: 0 } },
+      { strict: false }
+    );
+
 
     // 3) Enviar correo al usuario
     const subject = "Restablecimiento de contraseña";

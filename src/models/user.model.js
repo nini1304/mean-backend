@@ -29,6 +29,8 @@ const userSchema = new mongoose.Schema(
       default: false, // borrado lógico del usuario
       index: true,
     },
+    intentos_fallidos: { type: Number, default: 0 },
+    bloqueado: { type: Boolean, default: false, index: true }, 
   },
   {
     timestamps: true,
