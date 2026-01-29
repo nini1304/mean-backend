@@ -22,7 +22,7 @@ router.get(
 router.get(
   "/clientes-activos",
   autenticarJWT,
-  requerirRol(["ADMIN","RECEPCIONISTA"]),
+  requerirRol(["ADMIN","RECEPCIONISTA","VETERINARIO"]),
   userController.listarClientesActivos
 );
 

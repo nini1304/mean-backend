@@ -7,9 +7,13 @@ const { requerirRol } = require("../middlewares/role.middleware");
 // POST /api/veterinarios (solo ADMIN)
 router.post("/", controller.crearVeterinario);
 
-// GET /api/veterinarios (ADMIN u OPERADOR, ajusta a tu gusto)
-router.get("/", controller.listarVeterinarios);router.get(
+
+
+
+router.get(
   "/",
+  autenticarJWT,
+    requerirRol(["RECEPCIONISTA","VETERINARIO"]),
   controller.listarVeterinarios
 );
 

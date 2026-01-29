@@ -6,7 +6,8 @@ const mascotaController = require("../controllers/mascota.controller");
 router.post("/", mascotaController.crearMascota);
 
 // GET /api/mascotas
-router.get("/", mascotaController.listarMascotas);
+router.get("/",
+    mascotaController.listarMascotas);
 
 // GET /api/mascotas/:id
 router.get("/:id", mascotaController.obtenerMascotaPorId);

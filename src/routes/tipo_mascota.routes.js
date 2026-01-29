@@ -9,7 +9,7 @@ router.post("/", tipoMascotaController.crearTipoMascota);
 // GET /api/tipo-mascota
 router.get("/",
     autenticarJWT,
-    requerirRol(["ADMIN","RECEPCIONISTA"]),
+    requerirRol(["ADMIN","RECEPCIONISTA","VETERINARIO"]),
      tipoMascotaController.listarTiposMascota);
 
 module.exports = router;
