@@ -325,21 +325,7 @@ class VeterinarioService {
         return vet;
     }
 
-    async eliminarLogico(id_veterinario) {
-        const actualizado = await Veterinario.findByIdAndUpdate(
-            id_veterinario,
-            { eliminado: true },
-            { new: true }
-        ).lean();
-
-        if (!actualizado) {
-            const err = new Error("Veterinario no encontrado");
-            err.code = "VETERINARIO_NO_ENCONTRADO";
-            throw err;
-        }
-
-        return actualizado;
-    }
+    
 
     async listarVeterinariosConHorarios({ soloActivos = true } = {}) {
         // 1) Veterinarios (no eliminados) + usuario

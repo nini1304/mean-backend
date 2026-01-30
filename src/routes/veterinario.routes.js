@@ -17,8 +17,7 @@ router.get(
   controller.listarVeterinarios
 );
 
-// DELETE lógico /api/veterinarios/:id (solo ADMIN)
-router.delete("/:id", autenticarJWT, requerirRol(["ADMIN"]), controller.eliminarVeterinario);
+
 
 router.post("/completo",
    autenticarJWT,

@@ -43,25 +43,7 @@ exports.listarVeterinarios = async (req, res) => {
   }
 };
 
-exports.eliminarVeterinario = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const actualizado = await veterinarioService.eliminarLogico(id);
 
-    res.json({
-      message: "Veterinario eliminado lógicamente",
-      data: actualizado,
-    });
-  } catch (error) {
-    console.error("Error al eliminar veterinario:", error);
-
-    if (error.code === "VETERINARIO_NO_ENCONTRADO") {
-      return res.status(404).json({ message: error.message });
-    }
-
-    res.status(500).json({ message: "Error al eliminar veterinario" });
-  }
-};
 
 exports.crearVeterinarioCompleto = async (req, res) => {
   try {
