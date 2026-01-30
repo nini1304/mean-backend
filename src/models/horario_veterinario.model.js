@@ -17,6 +17,12 @@ const horarioSchema = new mongoose.Schema(
   { timestamps: true, collection: "horarios_veterinario" }
 );
 
-horarioSchema.index({ id_veterinario: 1, dia_semana: 1 }, { unique: true });
+horarioSchema.index(
+  { id_veterinario: 1, dia_semana: 1, hora_inicio: 1, hora_fin: 1 },
+  { unique: true, partialFilterExpression: { eliminado: false } }
+);
+
+// índice para ordenar/buscar
+horarioSchema.index({ id_veterinario: 1, dia_semana: 1, hora_inicio: 1 });
 
 module.exports = mongoose.model("HorarioVeterinario", horarioSchema);

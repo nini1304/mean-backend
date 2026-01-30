@@ -67,6 +67,33 @@ class VeterinarioService {
                     throw err;
                 }
             }
+
+            // (Opcional pero recomendado) evitar traslapes en el mismo día
+            const porDia = new Map();
+            for (const h of horarios ?? []) {
+                const dia = Number(h.dia_semana);
+                if (!porDia.has(dia)) porDia.set(dia, []);
+                porDia.get(dia).push({
+                    dia_semana: dia,
+                    hora_inicio: String(h.hora_inicio),
+                    hora_fin: String(h.hora_fin),
+                });
+            }
+
+            for (const [dia, arr] of porDia.entries()) {
+                arr.sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio));
+                for (let i = 1; i < arr.length; i++) {
+                    const prev = arr[i - 1];
+                    const cur = arr[i];
+                    // permite pegados: 12:30 == 12:30 (no es traslape)
+                    if (hhmmToMinutes(cur.hora_inicio) < hhmmToMinutes(prev.hora_fin)) {
+                        const err = new Error(`Horarios traslapados en dia_semana=${dia}`);
+                        err.code = "VALIDACION";
+                        throw err;
+                    }
+                }
+            }
+
         }
 
         // rollback best-effort
