@@ -27,7 +27,7 @@ router.post("/completo",
 // GET /api/veterinarios/con-horarios?soloActivos=true
 router.get("/con-horarios",
   autenticarJWT,
-  requerirRol(["ADMIN"]),
+  requerirRol(["ADMIN","RECEPCIONISTA"]),
   controller.listarVeterinariosConHorarios);
 
 router.put("/:id",
