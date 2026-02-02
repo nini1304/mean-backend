@@ -160,7 +160,9 @@ class HistorialClinicoService {
             { "Content-Type": file.mimetype }
         );
 
-        const baseUrl = process.env.MINIO_PUBLIC_URL || `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}`;
+        // const baseUrl = process.env.MINIO_PUBLIC_URL || `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}`;
+        const baseUrl = (process.env.MINIO_PUBLIC_URL || "").replace(/\/+$/, "");
+        if (!baseUrl) throw new Error("MINIO_PUBLIC_URL no está definido");
         const url = `${baseUrl}/${bucket}/${objectKey}`;
 
         const adjunto = {
