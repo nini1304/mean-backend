@@ -32,7 +32,8 @@ exports.listarRolesSinVeterinario = async (req, res) => {
     const roles = await roleService.listarRolesSinVeterinario();
     res.json(roles);
   } catch (error) {
-    console.error("Error listando roles sin VETERINARIO:", error);
+    console.error("Error listando roles (excluye VETERINARIO/CLIENTE):", error);
     res.status(500).json({ message: "Error al listar roles" });
   }
 };
+

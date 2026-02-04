@@ -29,8 +29,7 @@ class PacienteService {
         id_rol: rolCliente._id,
       });
 
-      // 3) Guardar contraseña
-      await contrasenaService.guardarContrasena(clienteCreado._id, contrasena, "CREACION");
+    
 
       // 4) Crear mascotas
       mascotasDocs = await Mascota.insertMany(
@@ -83,9 +82,7 @@ class PacienteService {
         }
 
         if (clienteCreado) {
-          // borrar contraseñas del usuario y usuario
-          const Contrasena = require("../models/contrasena.model");
-          await Contrasena.deleteMany({ id_usuario: clienteCreado._id });
+         
           await User.deleteOne({ _id: clienteCreado._id });
         }
       } catch (rollbackError) {

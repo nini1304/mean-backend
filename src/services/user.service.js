@@ -104,23 +104,26 @@ class UserService {
     .lean();
 }
 
-async listarUsuariosActivosSinVeterinario() {
-  const rolVet = await Role.findOne({ nombre: "VETERINARIO" }).lean();
+async listarUsuariosActivosSinVeterinarioNiCliente() {
+  const rolesExcluidos = await Role.find({
+    nombre: { $in: ["VETERINARIO", "CLIENTE"] }
+  })
+    .select("_id")
+    .lean();
 
-  // Si no existe el rol VETERINARIO, entonces no hay nada que excluir
+  const idsExcluidos = rolesExcluidos.map(r => r._id);
+
   const filtro = {
     eliminado: false,
+    ...(idsExcluidos.length ? { id_rol: { $nin: idsExcluidos } } : {})
   };
-
-  if (rolVet?._id) {
-    filtro.id_rol = { $ne: rolVet._id };
-  }
 
   return await User.find(filtro)
     .populate("id_rol", "nombre")
     .sort({ createdAt: -1 })
     .lean();
 }
+
 
 
 async actualizarUsuario(id_usuario, data) {

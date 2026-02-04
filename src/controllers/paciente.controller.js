@@ -2,7 +2,7 @@ const pacienteService = require("../services/paciente.service");
 
 exports.registrarClienteConMascotas = async (req, res) => {
   try {
-    const { dueno, mascotas, contrasena } = req.body;
+    const { dueno, mascotas } = req.body;
 
     if (!dueno || !mascotas || !Array.isArray(mascotas) || mascotas.length === 0) {
       return res.status(400).json({
@@ -10,11 +10,6 @@ exports.registrarClienteConMascotas = async (req, res) => {
       });
     }
 
-    if (!contrasena) {
-      return res.status(400).json({
-        message: "El campo 'contrasena' es obligatorio.",
-      });
-    }
 
     const { nombre_completo, correo, numero_celular } = dueno;
     if (!nombre_completo || !correo || !numero_celular) {
@@ -25,8 +20,7 @@ exports.registrarClienteConMascotas = async (req, res) => {
 
     const creado = await pacienteService.registrarClienteConMascotas({
       dueno,
-      mascotas,
-      contrasena,
+      mascotas
     });
 
     res.status(201).json({

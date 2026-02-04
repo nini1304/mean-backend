@@ -57,13 +57,14 @@ exports.listarClientesActivos = async (req, res) => {
 
 exports.listarUsuariosActivosSinVeterinario = async (req, res) => {
   try {
-    const usuarios = await userService.listarUsuariosActivosSinVeterinario();
+    const usuarios = await userService.listarUsuariosActivosSinVeterinarioNiCliente();
     res.json(usuarios);
   } catch (error) {
-    console.error("Error listando usuarios sin VETERINARIO:", error);
+    console.error("Error listando usuarios sin VETERINARIO ni CLIENTE:", error);
     res.status(500).json({ message: "Error al listar usuarios" });
   }
 };
+
 
 exports.crearUsuarioConContrasena = async (req, res) => {
   try {

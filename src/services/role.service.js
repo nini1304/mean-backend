@@ -18,10 +18,13 @@ class RoleService {
   }
 
   async listarRolesSinVeterinario() {
-  return await Role.find({ nombre: { $ne: "VETERINARIO" } })
-    .sort({ nombre: 1 })
-    .lean();
-}
+    return await Role.find({
+      nombre: { $nin: ["VETERINARIO", "CLIENTE"] }
+    })
+      .sort({ nombre: 1 })
+      .lean();
+  }
+
 
 }
 
